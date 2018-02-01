@@ -8,12 +8,10 @@ use Album\Model\AlbumTable;
 use Album\Form\AlbumForm;
 use Album\Model\Album;
 
- class AlbumController extends AbstractActionController
+ class AlbumController extends AbstractActionController 
  {
      
      protected $albumTable;
-     
-      // module/Album/src/Album/Controller/AlbumController.php:
      
      /**
       * 
@@ -91,6 +89,11 @@ use Album\Model\Album;
 
              if ($form->isValid()) {
                  $this->getAlbumTable()->saveAlbum($album);
+                 
+                 // Trigger Album Event
+                 $params = compact($album);
+                 $this->getEventManager()->trigger(__FUNCTION__, $this, [$album]);
+                 $this->getEventManager()->trigger('editAlbumModel', $this, [$album]);
 
                  // Redirect to list of albums
                  return $this->redirect()->toRoute('album');

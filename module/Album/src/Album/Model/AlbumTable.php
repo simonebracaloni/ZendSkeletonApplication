@@ -3,10 +3,14 @@
 namespace Album\Model;
 
  use Zend\Db\TableGateway\TableGateway;
+ use Zend\EventManager\EventManagerInterface;
+use Zend\EventManager\EventManager;
+use Zend\EventManager\EventManagerAwareInterface;
 
- class AlbumTable
+ class AlbumTable implements EventManagerAwareInterface
  {
      protected $tableGateway;
+     protected $events;
 
      public function __construct(TableGateway $tableGateway)
      {
@@ -43,6 +47,7 @@ namespace Album\Model;
          } else {
              if ($this->getAlbum($id)) {
                  $this->tableGateway->update($data, array('id' => $id));
+                 $this->events->trigger('editAlbumModel',$this, [$album]);
              } else {
                  throw new \Exception('Album id does not exist');
              }
@@ -53,4 +58,24 @@ namespace Album\Model;
      {
          $this->tableGateway->delete(array('id' => (int) $id));
      }
- }
+
+    public function setEventManager(EventManagerInterface $events)
+    {
+        error_log('event manager set');
+        $events->setIdentifiers(array(
+            __CLASS__,
+            get_called_class(),
+        ));
+        $this->events = $events;
+        return $this;
+    }
+
+    public function getEventManager()
+    {
+        if (null === $this->events) {
+            $this->setEventManager(new EventManager());
+        }
+        return $this->events;
+    }
+
+}
